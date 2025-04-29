@@ -1,0 +1,22 @@
+# Python  ─────────────────────────────────────────
+__pycache__/
+*.py[cod]
+
+# 가상환경
+.venv/
+
+# 환경 변수 파일
+.env
+
+# 로그
+*.log
+
+# 생성·업로드된 이미지
+static/images/
+
+# macOS
+.DS_Store
+
+# IDE 설정
+.idea/
+.vscode/

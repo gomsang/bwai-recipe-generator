@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AI 레시피 생성기</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #EDA614;
+            --accent-d: #C78C0D;
+            --accent-l: #F7D79A;
+            --bg: #F5F5F5;
+            --text: #343434;
+            --gray: #f0f0f0;
+            --r: 14px
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            background: radial-gradient(circle at 30% 20%, var(--accent-l) 0, var(--bg) 60%);
+            color: var(--text)
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+            padding: 32px 28px;
+            background: #fff;
+            border-radius: var(--r);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .05);
+            text-align: center
+        }
+
+        .site-logo {
+            max-width: 260px;
+            width: 100%;
+            display: block;
+            margin: 0 auto 12px
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 24px
+        }
+
+        input[type=file] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: var(--gray);
+            cursor: pointer;
+            margin-bottom: 18px /* ▼ 추가 패딩 */
+        }
+
+        input[type=file]::file-selector-button,
+        button {
+            background: var(--accent);
+            color: #fff;
+            font-weight: 700;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: .2s
+        }
+
+        input[type=file]::file-selector-button {
+            padding: 8px 14px;
+            margin-right: 10px
+        }
+
+        input[type=file]::file-selector-button:hover, button:hover {
+            background: var(--accent-d)
+        }
+
+        button {
+            width: 100%;
+            padding: 13px 20px;
+            font-size: 1rem;
+            box-shadow: 0 2px 6px rgba(237, 166, 20, .35)
+        }
+
+        button:disabled {
+            background: #bfbfbf;
+            cursor: not-allowed;
+            box-shadow: none
+        }
+
+        .loader {
+            border: 5px solid #e6e6e6;
+            border-top: 5px solid var(--accent);
+            border-radius: 50%;
+            width: 34px;
+            height: 34px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+
+        .loader-wrap {
+            display: none;
+            margin-top: 26px;
+            text-align: center;
+            color: #666;
+            font-size: .9rem
+        }
+
+        .error {
+            color: #d93025;
+            margin-top: 15px;
+            font-weight: 700
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="서비스 로고" class="site-logo" loading="lazy">
+    <h1>AI 레시피 생성기</h1>
+    <p style="margin-bottom:20px;color:#666">음식 재료 사진을 업로드하거나 직접 촬영하여&nbsp;레시피를 받아보세요!</p>
+
+    <form id="form" action="{{ url_for('handle_generation') }}" method="post" enctype="multipart/form-data">
+        <input type="file" id="image" name="image" accept="image/*" capture="environment" required>
+        <button type="submit" id="submit">레시피 생성 시작</button>
+    </form>
+
+    <div id="loader" class="loader-wrap">
+        <div class="loader"></div>
+        맛있는 레시피를 생성 중입니다... 잠시만 기다려주세요.
+    </div>
+    <div id="err" class="error"></div>
+</div>
+
+<script defer>
+    const $ = q => document.querySelector(q);
+    const form = $("#form"), img = $("#image"), btn = $("#submit"), load = $("#loader"), err = $("#err");
+    form.addEventListener("submit", e => {
+        if (!img.files.length) {
+            e.preventDefault();
+            err.textContent = "이미지를 선택하거나 촬영해주세요.";
+            return
+        }
+        load.style.display = "block";
+        btn.disabled = true;
+        btn.textContent = "처리 중...";
+        err.textContent = ""
+    });
+    img.addEventListener("change", () => err.textContent = "")
+</script>
+</body>
+</html>

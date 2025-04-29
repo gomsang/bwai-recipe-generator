@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>레시피 생성 결과</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --accent: #EDA614;
+            --accent-d: #C78C0D;
+            --bg: #F5F5F5;
+            --text: #343434;
+            --r: 12px
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.65;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 820px;
+            margin: 40px auto;
+            padding: 34px 30px;
+            background: #fff;
+            border-radius: var(--r);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, .08)
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 1.2em
+        }
+
+        h2, h3 {
+            font-weight: 700;
+            border-bottom: 1px solid #e7e7e7;
+            padding-bottom: .35em;
+            margin: 1.8em 0 1em
+        }
+
+        pre, .ingredient-list {
+            background: #fafafa;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: .9rem;
+            padding: 15px;
+            overflow: auto;
+            margin: 0
+        }
+
+        .ingredient-list {
+            list-style: none
+        }
+
+        .ingredient-list li {
+            padding: 4px 0
+        }
+
+        .recipe-steps {
+            white-space: pre-wrap;
+            background: #fcfcfc;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 16px
+        }
+
+        .recipe-info p {
+            margin-bottom: .5em
+        }
+
+        .recipe-info strong {
+            color: var(--accent);
+            margin-right: 4px
+        }
+
+        .recipe-img {
+            max-width: 100%;
+            display: block;
+            margin: 24px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, .1)
+        }
+
+        .error {
+            color: #d93025;
+            background: #fce8e6;
+            border: 1px solid #f6b8b6;
+            padding: 18px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-weight: 700
+        }
+
+        .error small {
+            color: #666;
+            font-size: .88rem
+        }
+
+        #share {
+            display: block;
+            width: 100%;
+            padding: 14px 0;
+            margin-top: 32px;
+            background: var(--accent);
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 3px 9px rgba(237, 166, 20, .35);
+            transition: .2s
+        }
+
+        #share:hover {
+            background: var(--accent-d);
+            box-shadow: 0 5px 12px rgba(237, 166, 20, .45)
+        }
+
+        .restart {
+            display: block;
+            margin: 14px auto 0;
+            text-align: center;
+            font-size: .95rem;
+            color: var(--accent);
+            text-decoration: none
+        }
+
+        .restart:hover {
+            text-decoration: underline
+        }
+
+        .prompt-info {
+            font-size: .82rem;
+            color: #777;
+            text-align: center;
+            margin-top: 6px
+        }
+
+        .footer-logo {
+            width: 160px;
+            display: block;
+            margin: 40px auto 0
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>레시피 생성 결과</h1>
+
+    {% if error %}
+        <div class="error">오류 발생: {{ error }}</div>
+    {% else %}
+        <section>
+            <h2>식별된 재료</h2>
+            {% if ingredients and ingredients is iterable %}
+                <ul class="ingredient-list">
+                    {% for i in ingredients %}
+                        <li>{{ i.name }}{% if i.quantity %} ({{ i.quantity }}){% endif %}</li>
+                    {% endfor %}
+                </ul>
+            {% elif ingredients_json %}
+                <p>재료 리스트를 표시할 수 없습니다.</p>
+                <pre>{{ ingredients_json }}</pre>
+            {% else %}
+                <p>식별된 재료가 없습니다.</p>
+            {% endif %}
+        </section>
+
+        {% if recipe_data %}
+            <section>
+                <h2>{{ recipe_data.recipe_title|default('생성된 레시피', true) }}</h2>
+                <div class="recipe-info">
+                    {% if recipe_data.estimated_calories %}
+                        <p><strong>예상 칼로리:</strong>{{ recipe_data.estimated_calories }}</p>
+                    {% endif %}
+                    {% if recipe_data.estimated_time %}
+                        <p><strong>예상 소요 시간:</strong>{{ recipe_data.estimated_time }}</p>
+                    {% endif %}
+                </div>
+
+                {% if recipe_data.recipe_steps %}
+                    <h3>레시피 단계</h3>
+                    <div class="recipe-steps">{{ recipe_data.recipe_steps }}</div>
+                {% else %}<p>레시피 단계를 생성하지 못했습니다.</p>{% endif %}
+            </section>
+
+            {% if image_filename %}
+                <section>
+                    <h2>요리 완성 예상 이미지</h2>
+                    <img src="{{ url_for('static', filename=image_filename) }}" alt="Generated" class="recipe-img"
+                         loading="lazy">
+                    {% if recipe_data.preview_image_prompt %}
+                        <p class="prompt-info"><small><i>사용된 프롬프트: {{ recipe_data.preview_image_prompt }}</i></small>
+                        </p>
+                    {% endif %}
+                </section>
+            {% elif image_generation_error %}
+                <div class="error">
+                    <h2>요리 이미지 생성 실패</h2>
+                    <p>{{ image_generation_error }}</p>
+                    {% if recipe_data.preview_image_prompt %}
+                        <small>(프롬프트: {{ recipe_data.preview_image_prompt }})</small>
+                    {% endif %}
+                </div>
+            {% endif %}
+        {% elif recipe_generation_error %}
+            <div class="error">
+                <h2>레시피 생성 실패</h2>
+                <p>{{ recipe_generation_error }}</p>
+            </div>
+        {% endif %}
+    {% endif %}
+
+    {% if not error and recipe_data %}
+        <button id="share">공유하기</button>{% endif %}
+    <a href="{{ url_for('index') }}" class="restart">새로운 이미지로 시작하기</a>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="서비스 로고" class="footer-logo" loading="lazy">
+</div>
+
+{% if not error and recipe_data %}
+    <script defer>
+        document.getElementById("share").onclick = async () => {
+            const body = {
+                title: "{{ recipe_data.recipe_title }}",
+                kcal: "{{ recipe_data.estimated_calories }}",
+                time: "{{ recipe_data.estimated_time }}",
+                img: "{{ url_for('static', filename=image_filename) if image_filename else '' }}"
+            };
+            try {
+                const r = await fetch("{{ url_for('share_image') }}", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify(body)
+                });
+                const j = await r.json();
+                j.url ? window.open(j.url, "_blank") : alert("공유 이미지 생성에 실패했습니다.");
+            } catch {
+                alert("공유 과정에서 오류가 발생했습니다.")
+            }
+        };
+    </script>
+{% endif %}
+</body>
+</html>
